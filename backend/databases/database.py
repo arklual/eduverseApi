@@ -11,10 +11,10 @@ class Database:
         conn = await aiosqlite.connect('./backend/databases/data.sqlite3')
         return Database(conn)
     
-    async def close_connection(self):
+    async def close_connection(self) -> None:
         await self.__conn__.close()
 
-    async def get_students(self):
+    async def get_students(self) -> list[Student]:
         cur = await self.__conn__.execute('SELECT telegram_id, first_name, last_name, gender, english_group, info_group FROM students ORDER BY last_name')
         sts = await cur.fetchall()
         await cur.close()
@@ -30,7 +30,7 @@ class Database:
             students.append(student)
         return students
     
-    async def get_student_by_id(self, telegram_id):
+    async def get_student_by_id(self, telegram_id) -> Student:
         cur = await self.__conn__.execute('SELECT telegram_id, first_name, last_name, gender, english_group, info_group FROM students WHERE telegram_id = ?', (telegram_id,))
         student = await cur.fetchone()
         await cur.close()
@@ -43,13 +43,13 @@ class Database:
                             info_group=str(student[5]))
         return student
     
-    async def add_mark(self, mark, commit=True):
+    async def add_mark(self, mark, commit=True) -> None:
         mark = (mark.student.telegram_id, mark.mark, mark.subject.id)
         await self.__conn__.execute("INSERT INTO marks (student, mark, subject) VALUES(?, ?, ?);", mark)
         if commit:
             await self.__conn__.commit()
     
-    async def get_students_marks(self, student):
+    async def get_students_marks(self, student) -> list[Mark]:
         cur = await self.__conn__.execute('SELECT student, mark, subject FROM marks WHERE student = ?', (student.telegram_id,))
         mrks = await cur.fetchall()
         await cur.close()
@@ -62,7 +62,7 @@ class Database:
             marks.append(mark)
         return marks
     
-    async def get_students_marks_in(self, student, subject):
+    async def get_students_marks_in(self, student, subject) -> list[Mark]:
         cur = await self.__conn__.execute('SELECT student, mark, subject FROM marks WHERE student = ? AND subject = ?', (student.telegram_id, subject.id, ))
         mrks = await cur.fetchall()
         await cur.close()
@@ -75,35 +75,35 @@ class Database:
             marks.append(mark)
         return marks
 
-    async def remove_students_marks_in(self, student, subject):
+    async def remove_students_marks_in(self, student, subject) -> None:
         await self.__conn__.execute('DELETE FROM marks WHERE student = ? AND subject = ?', (student.telegram_id, subject.id, ))
         await self.__conn__.commit()
     
-    async def remove_marks_in(self, subject):
+    async def remove_marks_in(self, subject) -> None:
         await self.__conn__.execute('DELETE FROM marks WHERE subject = ?', (subject.id, ))
         await self.__conn__.commit()
     
-    async def remove_marks(self):
+    async def remove_marks(self) -> None:
         await self.__conn__.execute('DELETE FROM marks')
         await self.__conn__.commit()
 
-    async def reset_marks_ids(self):
+    async def reset_marks_ids(self) -> None:
         await self.__conn__.execute('DELETE FROM sqlite_sequence WHERE name="marks"')
         await self.__conn__.commit()
 
-    async def get_subject_by_id(self, subject_id):
+    async def get_subject_by_id(self, subject_id) -> Subject:
         cur = await self.__conn__.execute('SELECT name FROM subjects WHERE id = ?', (subject_id, ))
         subject = list(await cur.fetchone())[0]
         await cur.close()
         return Subject(str(subject_id), subject)
     
-    async def get_subject_by_name(self, subject_name):
+    async def get_subject_by_name(self, subject_name) -> Subject:
         cur = await self.__conn__.execute('SELECT id FROM subjects WHERE name = ?', (subject_name, ))
         id = list(await cur.fetchone())[0]
         await cur.close()
         return Subject(str(id), subject_name)
     
-    async def get_subjects(self):
+    async def get_subjects(self) -> list[Subject]:
         cur = await self.__conn__.execute('SELECT id, name FROM subjects')
         sbs = await cur.fetchall()
         await cur.close()
@@ -112,55 +112,55 @@ class Database:
             subjects.append(Subject(id=str(list(sub)[0]), name=list(sub)[1]))
         return subjects
 
-    async def get_bot_token(self):
+    async def get_bot_token(self) -> str:
         cur = await self.__conn__.execute('SELECT token FROM bot')
         (token,) = await cur.fetchone()
         await cur.close()
         return token
 
-    async def get_username(self):
+    async def get_username(self) -> str:
         cur = await self.__conn__.execute('SELECT username FROM bot')
         (username, ) = await cur.fetchone()
         username = username.replace('_', '')
         await cur.close()
         return username
 
-    async def get_password(self):
+    async def get_password(self) -> str:
         cur = await self.__conn__.execute('SELECT password FROM bot')
         (password, ) = await cur.fetchone()
         password = password.replace('_', '')
         await cur.close()
         return password
 
-    async def get_notion_token(self):
+    async def get_notion_token(self) -> str:
         cur = await self.__conn__.execute('SELECT notion_token FROM bot')
         (token,) = await cur.fetchone()
         await cur.close()
         return token
     
-    async def hw_exists(self, homework, student):
+    async def hw_exists(self, homework, student) -> bool:
         homework = (student.telegram_id, '_'+homework.task_id,)
         cur = await self.__conn__.execute('SELECT EXISTS(SELECT * FROM homeworks WHERE student=? AND task_id=?);', homework)
         (exists, ) = await cur.fetchone()
         await cur.close()
         return bool(exists)
 
-    async def add_homework(self, homework, student):
+    async def add_homework(self, homework, student) -> None:
         homework = (student.telegram_id, '_'+homework.task_id,)
         await self.__conn__.execute("INSERT INTO homeworks (student, task_id) VALUES(?, ?);", homework)
         await self.__conn__.commit()
 
-    async def change_homework_done(self, homework, student, is_done=False):
+    async def change_homework_done(self, homework, student, is_done=False) -> None:
         homework = (int(is_done), student.telegram_id, '_'+homework.task_id,)
         await self.__conn__.execute("UPDATE homeworks SET is_done=? WHERE student=? AND task_id=?", homework)
         await self.__conn__.commit()
     
-    async def is_homework_done(self, homework, student):
+    async def is_homework_done(self, homework, student) -> bool:
         homework = (student.telegram_id, '_'+homework.task_id,)
         cur = await self.__conn__.execute('SELECT is_done FROM homeworks WHERE student=? AND task_id=?', homework)
         (is_done, ) = await cur.fetchone()
         await cur.close()
         return bool(is_done)
     
-    async def commit(self):
+    async def commit(self) -> None:
         await self.__conn__.commit()

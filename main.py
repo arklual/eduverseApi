@@ -25,8 +25,12 @@ async def get_marks():
 
 @app.route('/api/homework/')
 async def homework():
-    hw = await get_homework(datetime.date.today() + datetime.timedelta(1))
-    return jsonify(hw), 200, {'Content-Type': 'text/css; charset=utf-8'}
+    date = request.args.get('date', type = str)
+    if date:
+        if date == 'tommorow': date = datetime.date.today().isoformat()
+        hw = await get_homework(datetime.date.fromisoformat(date))
+        return jsonify(hw), 200, {'Content-Type': 'text/css; charset=utf-8'}
+    else: return '404'
     
 @app.route('/api/update/')
 async def update_marks():
