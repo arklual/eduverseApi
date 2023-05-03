@@ -11,7 +11,7 @@ app.config['JSON_AS_ASCII'] = False
 async def get_students():
     db = await database.Database.setup()
     students = await db.get_students()
-    return jsonify(students), 200, {'Content-Type': 'text/css; charset=utf-8'}
+    return jsonify(students).headers.add('Access-Control-Allow-Origin', '*'), 200, {'Content-Type': 'text/css; charset=utf-8'}
 
 @app.route('/api/marks/')
 async def get_marks():
