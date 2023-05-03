@@ -36,4 +36,4 @@ async def homework():
 async def update_marks():
     await marks_api.update_marks()
     
-app.run(port=80)
+app.run(port=8000)
