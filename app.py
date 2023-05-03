@@ -3,15 +3,18 @@ from backend.databases import database
 from backend import marks_api
 from backend.homework_api import get_homework
 import datetime
+from flask_cors import CORS
+
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
+CORS(app)
 
 @app.route('/api/students/')
 async def get_students():
     db = await database.Database.setup()
     students = await db.get_students()
-    return jsonify(students).headers.add('Access-Control-Allow-Origin', '*'), 200, {'Content-Type': 'text/css; charset=utf-8'}
+    return jsonify(students), 200, {'Content-Type': 'text/css; charset=utf-8'}
 
 @app.route('/api/marks/')
 async def get_marks():
