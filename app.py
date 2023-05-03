@@ -35,3 +35,5 @@ async def homework():
 @app.route('/api/update/')
 async def update_marks():
     await marks_api.update_marks()
+    
+app.run()
