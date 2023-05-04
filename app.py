@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from backend.databases import database
 from backend import marks_api
-from backend.homework_api import get_homework
+from backend.homework_api import get_homework, update_hash
 import datetime
 from flask_cors import CORS
 
@@ -35,8 +35,12 @@ async def homework():
         return jsonify(hw), 200, {'Content-Type': 'text/css; charset=utf-8'}
     else: return '404'
     
-@app.route('/api/update/')
+@app.route('/api/update-marks/')
 async def update_marks():
     await marks_api.update_marks()
-    
+
+@app.route('/api/update-hw-hash/')
+async def update_hw_hash():
+    await update_hash()
+
 app.run(port=8000)
